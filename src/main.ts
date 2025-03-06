@@ -7,11 +7,11 @@ async function run(): Promise<void> {
   try {
     const context: Context = github.context
     const github_token: string = core.getInput('repo-token')    
-    const pull_request_number: number = context.payload.pull_request?.number ?? 0    
-    const pull_request_description: string = context.payload.pull_request?.body ?? ''    
+    const pull_request_number: number = context.payload.pull_request_target?.number ?? 0    
+    const pull_request_description: string = context.payload.pull_request_target?.body ?? ''    
     const ab_lookup_match: RegExpMatchArray | null = pull_request_description.match(/AB#([^ \]]+)/g) 
-    const repository_owner: string = context.payload.base?.repo?.owner.login ?? '' 
-    const repository_name: string = context.payload.base?.repo?.name ?? ''
+    const repository_owner: string = context.payload.pull_request_target.base?.repo?.owner.login ?? '' 
+    const repository_name: string = context.payload.pull_request_target.base?.repo?.name ?? ''
     const sender_login: string = context.payload.sender?.login ?? ''
     
     let work_item_id = ''
@@ -32,7 +32,7 @@ async function run(): Promise<void> {
       return
     }
 
-    if (context.eventName === 'pull_request') {   
+    if (context.eventName === 'pull_request_target') {   
       
       last_comment_posted = await getLastComment(octokit, repository_owner, repository_name, pull_request_number)
       console.log(`Last comment posted by action: ${last_comment_posted.code}`)
