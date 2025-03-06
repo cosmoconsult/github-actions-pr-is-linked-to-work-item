@@ -86,7 +86,7 @@ async function run(): Promise<void> {
           // check if the description contains a link to the work item
           console.log(`Bot did not create a link from AB#${work_item_id}`)
                     
-          core.warning(`Description contains AB#${work_item_id} and waiting for the azure-boards[bot] to validate the link`)
+          core.setFailed(`Description contains AB#${work_item_id} and waiting for the azure-boards[bot] to validate the link`)
         }       
        
         return
