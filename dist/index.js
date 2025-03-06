@@ -56,13 +56,13 @@ function run() {
             let work_item_id = '';
             let last_comment_posted = { code: "", id: 0 };
             const octokit = github.getOctokit(github_token);
-            console.log(context.eventName);
-            console.log(context.payload);
-            console.log(sender_login);
-            console.log(pull_request_number);
-            console.log(repository_owner);
-            console.log(repository_name);
-            console.log(pull_request_description);
+            console.debug(context.eventName);
+            console.debug(context.payload);
+            console.debug(sender_login);
+            console.debug(pull_request_number);
+            console.debug(repository_owner);
+            console.debug(repository_name);
+            console.debug(pull_request_description);
             // if the sender in the azure-boards bot or dependabot, then exit code
             // nothing needs to be done
             if (sender_login === "dependabot[bot]") {
