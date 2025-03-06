@@ -43,27 +43,33 @@ const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
         try {
             const context = github.context;
             const github_token = core.getInput('repo-token');
-            const pull_request_number = (_b = (_a = context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number) !== null && _b !== void 0 ? _b : 0;
-            const pull_request_description = (_d = (_c = context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.body) !== null && _d !== void 0 ? _d : '';
+            const pull_request_number = (_b = (_a = context.payload.pull_request_target) === null || _a === void 0 ? void 0 : _a.number) !== null && _b !== void 0 ? _b : 0;
+            const pull_request_description = (_d = (_c = context.payload.pull_request_target) === null || _c === void 0 ? void 0 : _c.body) !== null && _d !== void 0 ? _d : '';
             const ab_lookup_match = pull_request_description.match(/AB#([^ \]]+)/g);
-            const repository_owner = (_f = (_e = context.payload.repository) === null || _e === void 0 ? void 0 : _e.owner.login) !== null && _f !== void 0 ? _f : '';
-            const repository_name = (_h = (_g = context.payload.repository) === null || _g === void 0 ? void 0 : _g.name) !== null && _h !== void 0 ? _h : '';
-            const sender_login = (_k = (_j = context.payload.sender) === null || _j === void 0 ? void 0 : _j.login) !== null && _k !== void 0 ? _k : '';
+            const repository_owner = (_g = (_f = (_e = context.payload.pull_request_target.base) === null || _e === void 0 ? void 0 : _e.repo) === null || _f === void 0 ? void 0 : _f.owner.login) !== null && _g !== void 0 ? _g : '';
+            const repository_name = (_k = (_j = (_h = context.payload.pull_request_target.base) === null || _h === void 0 ? void 0 : _h.repo) === null || _j === void 0 ? void 0 : _j.name) !== null && _k !== void 0 ? _k : '';
+            const sender_login = (_m = (_l = context.payload.sender) === null || _l === void 0 ? void 0 : _l.login) !== null && _m !== void 0 ? _m : '';
             let work_item_id = '';
             let last_comment_posted = { code: "", id: 0 };
             const octokit = github.getOctokit(github_token);
+            console.log(context.eventName);
+            console.log(context.payload);
             console.log(sender_login);
+            console.log(pull_request_number);
+            console.log(repository_owner);
+            console.log(repository_name);
+            console.log(pull_request_description);
             // if the sender in the azure-boards bot or dependabot, then exit code
             // nothing needs to be done
             if (sender_login === "dependabot[bot]") {
                 console.log(`dependabot[bot] sender, exiting action.`);
                 return;
             }
-            if (context.eventName === 'pull_request') {
+            if (context.eventName === 'pull_request_target') {
                 last_comment_posted = yield getLastComment(octokit, repository_owner, repository_name, pull_request_number);
                 console.log(`Last comment posted by action: ${last_comment_posted.code}`);
                 // check if pull request description contains a AB#<work item number>
