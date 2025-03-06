@@ -43,12 +43,12 @@ const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
         try {
             const context = github.context;
             const github_token = core.getInput('repo-token');
             const pull_request_number = (_b = (_a = context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number) !== null && _b !== void 0 ? _b : 0;
-            const pull_request_description = (_d = (_c = context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.body) !== null && _d !== void 0 ? _d : '';
+            let pull_request_description = (_d = (_c = context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.body) !== null && _d !== void 0 ? _d : '';
             const ab_lookup_match = pull_request_description.match(/AB#([^ \]]+)/g);
             const repository_owner = (_h = (_g = (_f = (_e = context.payload.pull_request) === null || _e === void 0 ? void 0 : _e.base) === null || _f === void 0 ? void 0 : _f.repo) === null || _g === void 0 ? void 0 : _g.owner.login) !== null && _h !== void 0 ? _h : '';
             const repository_name = (_m = (_l = (_k = (_j = context.payload.pull_request) === null || _j === void 0 ? void 0 : _j.base) === null || _k === void 0 ? void 0 : _k.repo) === null || _l === void 0 ? void 0 : _l.name) !== null && _m !== void 0 ? _m : '';
@@ -56,6 +56,18 @@ function run() {
             let work_item_id = '';
             let last_comment_posted = { code: "", id: 0 };
             const octokit = github.getOctokit(github_token);
+            const issue = yield octokit.rest.issues.get({
+                owner: repository_owner,
+                repo: repository_name,
+                issue_number: pull_request_number,
+            });
+            //get body from  issue
+            const issue_body = (_q = issue.data.body) === null || _q === void 0 ? void 0 : _q.toString();
+            //assign body to pull_request_description
+            // convert body to string
+            pull_request_description = issue_body;
+            console.log(`Pull request number: ${pull_request_number}`);
+            console.log(`Pull request description: ${pull_request_description}`);
             // if the sender in the azure-boards bot or dependabot, then exit code
             // nothing needs to be done
             if (sender_login === "dependabot[bot]") {
