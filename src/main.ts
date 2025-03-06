@@ -18,7 +18,8 @@ async function run(): Promise<void> {
     let last_comment_posted: ILastCommentPosted = {code: "", id: 0 }
 
     const octokit: InstanceType<typeof GitHub> = github.getOctokit(github_token)   
-    
+    console.log(context.eventName)
+    console.log(context.payload)
     console.log(sender_login)
     console.log(pull_request_number)
     console.log(repository_owner)
