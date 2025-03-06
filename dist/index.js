@@ -56,6 +56,8 @@ function run() {
             let work_item_id = '';
             let last_comment_posted = { code: "", id: 0 };
             const octokit = github.getOctokit(github_token);
+            //wait 30 seconds to start
+            yield new Promise(resolve => setTimeout(resolve, 10000));
             const issue = yield octokit.rest.issues.get({
                 owner: repository_owner,
                 repo: repository_name,
@@ -107,7 +109,7 @@ function run() {
                     else {
                         // check if the description contains a link to the work item
                         console.log(`Bot did not create a link from AB#${work_item_id}`);
-                        core.setFailed(`Description contains AB#${work_item_id} and waiting for the azure-boards[bot] to validate the link`);
+                        core.warning(`Description contains AB#${work_item_id} and waiting for the azure-boards[bot] to validate the link`);
                     }
                     return;
                 }

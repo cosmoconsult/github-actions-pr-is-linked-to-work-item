@@ -19,12 +19,14 @@ async function run(): Promise<void> {
 
     const octokit: InstanceType<typeof GitHub> = github.getOctokit(github_token) 
     
+    //wait 30 seconds to start
+    await new Promise(resolve => setTimeout(resolve, 10000))
+
     const issue = await octokit.rest.issues.get({
       owner: repository_owner,
       repo: repository_name,
       issue_number:  pull_request_number,
     })
-
     //get body from  issue
     const issue_body = issue.data.body?.toString()
     //assign body to pull_request_description
@@ -86,7 +88,7 @@ async function run(): Promise<void> {
           // check if the description contains a link to the work item
           console.log(`Bot did not create a link from AB#${work_item_id}`)
                     
-          core.setFailed(`Description contains AB#${work_item_id} and waiting for the azure-boards[bot] to validate the link`)
+          core.warning(`Description contains AB#${work_item_id} and waiting for the azure-boards[bot] to validate the link`)
         }       
        
         return
