@@ -70,11 +70,6 @@ async function run(): Promise<void> {
               })
             }            
             
-            await octokit.rest.issues.createComment({
-              ...context.repo,
-              issue_number: pull_request_number,
-              body: `✅ Work item link check complete. Description contains link AB#${work_item_id} to an Azure Boards work item.\n\n<!-- code: lcc-200 -->`
-            })
           }
 
           return
@@ -84,11 +79,7 @@ async function run(): Promise<void> {
           console.log(`Bot did not create a link from AB#${work_item_id}`)
           
           if (last_comment_posted.code !== "lcc-416" && sender_login !== "azure-boards[bot]") {
-            await octokit.rest.issues.createComment({
-              ...context.repo,
-              issue_number: pull_request_number,
-              body: `❌ Work item link check failed. Description contains AB#${work_item_id} but the Bot could not link it to an Azure Boards work item.\n\n[Click here](https://learn.microsoft.com/en-us/azure/devops/boards/github/link-to-from-github?view=azure-devops#use-ab-mention-to-link-from-github-to-azure-boards-work-items) to learn more.\n\n<!--code: lcc-416-->`
-            }) 
+
 
             core.setFailed(`Description contains AB#${work_item_id} but the Bot could not link it to an Azure Boards work item`)
             return
