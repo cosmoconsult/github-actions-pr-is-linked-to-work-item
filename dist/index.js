@@ -114,9 +114,13 @@ function run() {
                     return;
                 }
                 else {
-                    if (last_comment_posted.code !== "lcc-404") {
-                        yield octokit.rest.issues.createComment(Object.assign(Object.assign({}, context.repo), { issue_number: pull_request_number, body: `❌ Work item link check failed. Description does not contain AB#{ID}.\n\n[Click here](https://learn.microsoft.com/en-us/azure/devops/boards/github/link-to-from-github?view=azure-devops#use-ab-mention-to-link-from-github-to-azure-boards-work-items) to Learn more.\n\n<!-- code: lcc-404 -->` }));
-                    }
+                    // if (last_comment_posted.code !== "lcc-404") {
+                    //   await octokit.rest.issues.createComment({
+                    //     ...context.repo,
+                    //     issue_number: pull_request_number,
+                    //     body: `❌ Work item link check failed. Description does not contain AB#{ID}.\n\n[Click here](https://learn.microsoft.com/en-us/azure/devops/boards/github/link-to-from-github?view=azure-devops#use-ab-mention-to-link-from-github-to-azure-boards-work-items) to Learn more.\n\n<!-- code: lcc-404 -->`
+                    //   }) 
+                    // }
                     core.setFailed('Description does not contain AB#{ID}');
                 }
             }
