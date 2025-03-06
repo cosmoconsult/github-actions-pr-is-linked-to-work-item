@@ -18,13 +18,7 @@ async function run(): Promise<void> {
     let last_comment_posted: ILastCommentPosted = {code: "", id: 0 }
 
     const octokit: InstanceType<typeof GitHub> = github.getOctokit(github_token)   
-    console.debug(context.eventName)
-    console.debug(context.payload)
-    console.debug(sender_login)
-    console.debug(pull_request_number)
-    console.debug(repository_owner)
-    console.debug(repository_name)
-    console.debug(pull_request_description)
+
 
     // if the sender in the azure-boards bot or dependabot, then exit code
     // nothing needs to be done
@@ -77,14 +71,7 @@ async function run(): Promise<void> {
         else {
           // check if the description contains a link to the work item
           console.log(`Bot did not create a link from AB#${work_item_id}`)
-          
-          if (last_comment_posted.code !== "lcc-416" && sender_login !== "azure-boards[bot]") {
-
-
-            core.setFailed(`Description contains AB#${work_item_id} but the Bot could not link it to an Azure Boards work item`)
-            return
-          }      
-          
+                    
           core.warning(`Description contains AB#${work_item_id} and waiting for the azure-boards[bot] to validate the link`)
         }       
        
