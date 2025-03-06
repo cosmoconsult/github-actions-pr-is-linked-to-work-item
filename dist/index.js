@@ -49,14 +49,13 @@ function run() {
             const github_token = core.getInput('repo-token');
             const pull_request_number = (_b = (_a = context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number) !== null && _b !== void 0 ? _b : 0;
             let pull_request_description = (_d = (_c = context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.body) !== null && _d !== void 0 ? _d : '';
-            const ab_lookup_match = pull_request_description.match(/AB#([^ \]]+)/g);
             const repository_owner = (_h = (_g = (_f = (_e = context.payload.pull_request) === null || _e === void 0 ? void 0 : _e.base) === null || _f === void 0 ? void 0 : _f.repo) === null || _g === void 0 ? void 0 : _g.owner.login) !== null && _h !== void 0 ? _h : '';
             const repository_name = (_m = (_l = (_k = (_j = context.payload.pull_request) === null || _j === void 0 ? void 0 : _j.base) === null || _k === void 0 ? void 0 : _k.repo) === null || _l === void 0 ? void 0 : _l.name) !== null && _m !== void 0 ? _m : '';
             const sender_login = (_p = (_o = context.payload.sender) === null || _o === void 0 ? void 0 : _o.login) !== null && _p !== void 0 ? _p : '';
             let work_item_id = '';
             let last_comment_posted = { code: "", id: 0 };
             const octokit = github.getOctokit(github_token);
-            //wait 30 seconds to start
+            //wait 10 seconds to start
             yield new Promise(resolve => setTimeout(resolve, 10000));
             const issue = yield octokit.rest.issues.get({
                 owner: repository_owner,
@@ -67,7 +66,8 @@ function run() {
             const issue_body = (_q = issue.data.body) === null || _q === void 0 ? void 0 : _q.toString();
             //assign body to pull_request_description
             // convert body to string
-            pull_request_description = issue_body;
+            pull_request_description = issue_body !== null && issue_body !== void 0 ? issue_body : '';
+            const ab_lookup_match = pull_request_description.match(/AB#([^ \]]+)/g);
             console.log(`Pull request number: ${pull_request_number}`);
             console.log(`Pull request description: ${pull_request_description}`);
             // if the sender in the azure-boards bot or dependabot, then exit code

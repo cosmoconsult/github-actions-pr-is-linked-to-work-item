@@ -9,7 +9,6 @@ async function run(): Promise<void> {
     const github_token: string = core.getInput('repo-token')    
     const pull_request_number: number = context.payload.pull_request?.number ?? 0    
     let pull_request_description: string | undefined = context.payload.pull_request?.body ?? ''    
-    const ab_lookup_match: RegExpMatchArray | null = pull_request_description.match(/AB#([^ \]]+)/g) 
     const repository_owner: string = context.payload.pull_request?.base?.repo?.owner.login ?? '' 
     const repository_name: string = context.payload.pull_request?.base?.repo?.name ?? ''
     const sender_login: string = context.payload.sender?.login ?? ''
@@ -19,7 +18,7 @@ async function run(): Promise<void> {
 
     const octokit: InstanceType<typeof GitHub> = github.getOctokit(github_token) 
     
-    //wait 30 seconds to start
+    //wait 10 seconds to start
     await new Promise(resolve => setTimeout(resolve, 10000))
 
     const issue = await octokit.rest.issues.get({
@@ -31,7 +30,10 @@ async function run(): Promise<void> {
     const issue_body = issue.data.body?.toString()
     //assign body to pull_request_description
     // convert body to string
-    pull_request_description = issue_body
+    pull_request_description = issue_body ?? ''
+
+    
+    const ab_lookup_match: RegExpMatchArray | null = pull_request_description.match(/AB#([^ \]]+)/g) 
 
     console.log(`Pull request number: ${pull_request_number}`)
     console.log(`Pull request description: ${pull_request_description}`)
