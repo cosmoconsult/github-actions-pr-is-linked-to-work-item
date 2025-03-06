@@ -8,7 +8,7 @@ async function run(): Promise<void> {
     const context: Context = github.context
     const github_token: string = core.getInput('repo-token')    
     const pull_request_number: number = context.payload.pull_request?.number ?? 0    
-    const pull_request_description: string = context.payload.pull_request?.body ?? ''    
+    let pull_request_description: string | undefined = context.payload.pull_request?.body ?? ''    
     const ab_lookup_match: RegExpMatchArray | null = pull_request_description.match(/AB#([^ \]]+)/g) 
     const repository_owner: string = context.payload.pull_request?.base?.repo?.owner.login ?? '' 
     const repository_name: string = context.payload.pull_request?.base?.repo?.name ?? ''
@@ -17,8 +17,22 @@ async function run(): Promise<void> {
     let work_item_id = ''
     let last_comment_posted: ILastCommentPosted = {code: "", id: 0 }
 
-    const octokit: InstanceType<typeof GitHub> = github.getOctokit(github_token)   
+    const octokit: InstanceType<typeof GitHub> = github.getOctokit(github_token) 
+    
+    const issue = await octokit.rest.issues.get({
+      owner: repository_owner,
+      repo: repository_name,
+      issue_number:  pull_request_number,
+    })
 
+    //get body from  issue
+    const issue_body = issue.data.body?.toString()
+    //assign body to pull_request_description
+    // convert body to string
+    pull_request_description = issue_body
+
+    console.log(`Pull request number: ${pull_request_number}`)
+    console.log(`Pull request description: ${pull_request_description}`)
 
     // if the sender in the azure-boards bot or dependabot, then exit code
     // nothing needs to be done
