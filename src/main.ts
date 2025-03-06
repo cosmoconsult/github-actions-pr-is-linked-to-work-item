@@ -10,8 +10,8 @@ async function run(): Promise<void> {
     const pull_request_number: number = context.payload.pull_request?.number ?? 0    
     const pull_request_description: string = context.payload.pull_request?.body ?? ''    
     const ab_lookup_match: RegExpMatchArray | null = pull_request_description.match(/AB#([^ \]]+)/g) 
-    const repository_owner: string = context.payload.repository?.owner.login ?? '' 
-    const repository_name: string = context.payload.repository?.name ?? ''
+    const repository_owner: string = context.payload.base?.repo?.owner.login ?? '' 
+    const repository_name: string = context.payload.base?.repo?.name ?? ''
     const sender_login: string = context.payload.sender?.login ?? ''
     
     let work_item_id = ''
