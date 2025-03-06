@@ -20,6 +20,10 @@ async function run(): Promise<void> {
     const octokit: InstanceType<typeof GitHub> = github.getOctokit(github_token)   
     
     console.log(sender_login)
+    console.log(pull_request_number)
+    console.log(repository_owner)
+    console.log(repository_name)
+    console.log(pull_request_description)
 
     // if the sender in the azure-boards bot or dependabot, then exit code
     // nothing needs to be done
