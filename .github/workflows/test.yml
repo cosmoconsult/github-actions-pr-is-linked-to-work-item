@@ -1,17 +1,23 @@
-name: 'build-test'
-on: # rebuild any PRs and main branch changes
-  pull_request:
+name: "build-test"
+on:
   push:
     branches:
       - main
-      - 'releases/*'
+  pull_request:
+  workflow_dispatch:
 
 jobs:
-  build: # make sure build/ci work properly
+  validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: |
-          npm install
-      - run: |
-          npm run all
+
+      - name: Run Pester tests
+        shell: pwsh
+        run: |
+          if (-not (Get-Module -ListAvailable -Name Pester)) {
+            Install-Module -Name Pester -Force -SkipPublisherCheck -Scope CurrentUser
+          }
+
+          Import-Module Pester -MinimumVersion 5.0.0
+          Invoke-Pester -Path "${{ github.workspace }}/tests" -CI
