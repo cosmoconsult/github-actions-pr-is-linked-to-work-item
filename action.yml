@@ -1,6 +1,6 @@
 name: 'Azure Boards, check for AB#'
 description: 'Check if the pull request description contains a markdown link to an Azure Boards work item'
-author: 'danhellem'
+author: COSMO CONSULT
 branding:
   icon: "code"
   color: "purple"
@@ -12,6 +12,8 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - shell: pwsh
-      run: |
-        & "${{ github.action_path }}/action.ps1" -RepoToken "${{ inputs.repo-token }}"
+  - id: CheckWorkItemLink
+    name: Check for Azure Boards work item link in PR description
+    shell: pwsh
+    run: |
+      & "${{ github.action_path }}/action.ps1" -RepoToken "${{ inputs.repo-token }}"
