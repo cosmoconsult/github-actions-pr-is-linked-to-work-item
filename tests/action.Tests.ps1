@@ -22,8 +22,20 @@ Describe 'Azure Boards link validation' {
         Test-WorkItemLink -Description 'See [AB#123](https://dev.azure.com/org/project/_workitems/edit/123)' | Should -BeTrue
     }
 
+    It 'accepts a valid Azure Boards work item link with a query string' {
+        Test-WorkItemLink -Description 'See [AB#123](https://dev.azure.com/org/project/_workitems/edit/123?fullScreen=true)' | Should -BeTrue
+    }
+
+    It 'accepts a valid Azure Boards work item link with a fragment' {
+        Test-WorkItemLink -Description 'See [AB#123](https://dev.azure.com/org/project/_workitems/edit/123#details)' | Should -BeTrue
+    }
+
     It 'rejects a link that does not target Azure Boards work items' {
         Test-WorkItemLink -Description 'See [AB#123](https://example.com/123)' | Should -BeFalse
+    }
+
+    It 'rejects a link with extra path segments after the work item id' {
+        Test-WorkItemLink -Description 'See [AB#123](https://dev.azure.com/org/project/_workitems/edit/123/extra)' | Should -BeFalse
     }
 
     It 'returns true for a valid description in Test-PullRequestDescription' {

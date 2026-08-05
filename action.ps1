@@ -111,7 +111,7 @@ function Test-WorkItemLink {
         [Parameter(Mandatory = $true)]
         [string]$Description
     )
-    return $Description -match '\[AB#\d+\]\(.*\/_workitems\/edit\/\d+\/?\)'
+    return $Description -match '\[AB#\d+\]\([^\)\s]*\/_workitems\/edit\/\d+\/?(?:\?[^\)#\s]*)?(?:#[^\)\s]*)?\)'
 }
 
 function Test-PullRequestDescription {
