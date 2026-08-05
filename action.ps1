@@ -108,6 +108,75 @@ function Get-MatchingWorkItemLink {
     return $null
 }
 
+function Get-LinkValidationResult {
+    param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
+        [string]$Description
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Description)) {
+        return [pscustomobject]@{
+            IsValid = $false
+            Reason  = 'Description is empty.'
+        }
+    }
+
+    $linkPattern = '\[(?<text>[^\[\]]+)\]\((?<url>[^)\r\n]+)\)'
+    $links = @([regex]::Matches($Description, $linkPattern))
+
+    if ($links.Count -eq 0) {
+        return [pscustomobject]@{
+            IsValid = $false
+            Reason  = 'No markdown links were found in the description.'
+        }
+    }
+
+    $matchingLink = Get-MatchingWorkItemLink -Description $Description
+
+    if ($null -ne $matchingLink) {
+        return [pscustomobject]@{
+            IsValid = $true
+            Reason  = "Found valid Azure Boards link: [$($matchingLink.Text)]($($matchingLink.Url))."
+        }
+    }
+
+    $hasAbText = $false
+    $hasWorkItemUrl = $false
+
+    foreach ($link in $links) {
+        $text = $link.Groups['text'].Value.Trim()
+        $url = $link.Groups['url'].Value.Trim()
+
+        if ($text -match '^AB#\d+$') {
+            $hasAbText = $true
+        }
+
+        if ($url.IndexOf('/_workitems/edit/', [StringComparison]::OrdinalIgnoreCase) -ge 0) {
+            $hasWorkItemUrl = $true
+        }
+    }
+
+    if ($hasAbText -and -not $hasWorkItemUrl) {
+        return [pscustomobject]@{
+            IsValid = $false
+            Reason  = 'Found markdown link text like AB#123, but the link target does not contain /_workitems/edit/.'
+        }
+    }
+
+    if (-not $hasAbText -and $hasWorkItemUrl) {
+        return [pscustomobject]@{
+            IsValid = $false
+            Reason  = 'Found a link to /_workitems/edit/, but the markdown link text is not in AB#<digits> format.'
+        }
+    }
+
+    return [pscustomobject]@{
+        IsValid = $false
+        Reason  = 'Markdown links exist, but none match [AB#<digits>](.../_workitems/edit/...).'
+    }
+}
+
 function Test-WorkItemLinkDescription {
     param(
         [Parameter(Mandatory = $true)]
@@ -115,7 +184,7 @@ function Test-WorkItemLinkDescription {
         [string]$Description
     )
 
-    return $null -ne (Get-MatchingWorkItemLink -Description $Description)
+    return (Get-LinkValidationResult -Description $Description).IsValid
 }
 
 function Invoke-LinkCheck {
@@ -130,22 +199,33 @@ function Invoke-LinkCheck {
         [int]$RetryDelaySeconds = 10
     )
 
-    if (Test-WorkItemLinkDescription -Description $InitialDescription) {
+    $initialResult = Get-LinkValidationResult -Description $InitialDescription
+
+    if ($initialResult.IsValid) {
         Write-Host 'Pull request description already contains a valid Azure Boards link.'
         return
     }
 
-    Write-Host "Initial check failed. Waiting $RetryDelaySeconds seconds before rechecking."
+    Write-Host "Initial check failed: $($initialResult.Reason)"
+    Write-Host "Waiting $RetryDelaySeconds seconds before rechecking."
     Start-Sleep -Seconds $RetryDelaySeconds
 
     $updatedDescription = & $DescriptionProvider
+    $updatedResult = Get-LinkValidationResult -Description $updatedDescription
 
-    if (Test-WorkItemLinkDescription -Description $updatedDescription) {
+    if ($updatedResult.IsValid) {
         Write-Host 'Pull request description contains a valid Azure Boards link after retry.'
         return
     }
 
-    throw 'Pull request description must contain a markdown link with text like [AB#123] and a target URL containing /_workitems/edit/.'
+    $failureMessage = @(
+        'Pull request description validation failed after one retry.'
+        "Initial check: $($initialResult.Reason)"
+        "Retry check: $($updatedResult.Reason)"
+        'Expected format: [AB#123](https://dev.azure.com/<org>/<project>/_workitems/edit/123).'
+    ) -join ' '
+
+    throw $failureMessage
 }
 
 function Invoke-Action {

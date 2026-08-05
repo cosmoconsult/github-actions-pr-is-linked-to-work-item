@@ -27,6 +27,20 @@ Describe 'Azure Boards link validation' {
 
         {
             Invoke-LinkCheck -InitialDescription 'Still missing the Azure Boards link.' -RetryDelaySeconds 0 -DescriptionProvider $stillInvalid
-        } | Should -Throw '*markdown link*/*_workitems/edit/*'
+        } | Should -Throw '*No markdown links were found*Expected format*'
+    }
+
+    It 'reports a clear reason for empty descriptions' {
+        $result = Get-LinkValidationResult -Description ''
+
+        $result.IsValid | Should -BeFalse
+        $result.Reason | Should -Be 'Description is empty.'
+    }
+
+    It 'reports a clear reason when AB text exists but URL is wrong' {
+        $result = Get-LinkValidationResult -Description 'See [AB#123](https://example.com/workitems/123)'
+
+        $result.IsValid | Should -BeFalse
+        $result.Reason | Should -Be 'Found markdown link text like AB#123, but the link target does not contain /_workitems/edit/.'
     }
 }
