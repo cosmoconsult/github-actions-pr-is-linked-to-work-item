@@ -87,6 +87,7 @@ function Get-PullRequestDescriptionFromGitHub {
 function Get-MatchingWorkItemLink {
     param(
         [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
         [string]$Description
     )
 
@@ -110,6 +111,7 @@ function Get-MatchingWorkItemLink {
 function Test-WorkItemLinkDescription {
     param(
         [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
         [string]$Description
     )
 
@@ -119,6 +121,7 @@ function Test-WorkItemLinkDescription {
 function Invoke-LinkCheck {
     param(
         [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
         [string]$InitialDescription,
 
         [Parameter(Mandatory = $true)]
