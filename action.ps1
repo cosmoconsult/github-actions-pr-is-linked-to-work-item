@@ -158,8 +158,10 @@ function Invoke-Action {
 
     Write-Host "Checking pull request #$($context.Number) in $($context.Owner)/$($context.Repo)."
 
+    $getDescriptionCommand = Get-Command -Name Get-PullRequestDescriptionFromGitHub -CommandType Function
+
     $descriptionProvider = {
-        Get-PullRequestDescriptionFromGitHub -Token $Token -Owner $context.Owner -Repo $context.Repo -PullRequestNumber $context.Number
+        & $getDescriptionCommand -Token $Token -Owner $context.Owner -Repo $context.Repo -PullRequestNumber $context.Number
     }.GetNewClosure()
 
     Invoke-LinkCheck -InitialDescription $context.InitialDescription -DescriptionProvider $descriptionProvider
