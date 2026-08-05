@@ -259,7 +259,7 @@ Write-Host "Fetching pull request description from GitHub..."
 $PrContext = Get-PullRequestContext
 Write-Host "Pull request #$($PrContext.Number) in $($PrContext.Owner)/$($PrContext.Repo)."
 
-$Description = Get-PullRequestDescriptionFromGitHub @PrContext
+$Description = Get-PullRequestDescriptionFromGitHub -Owner $PrContext.Owner -Repo $PrContext.Repo -PullRequestNumber $PrContext.Number -Token $RepoToken
 Write-Host "Pull request description fetched successfully: $Description"
 
 Write-Host "Validating pull request description for Azure Boards work item link..."
@@ -277,7 +277,7 @@ if (!$HasWorkItemLink ) {
     Write-Host "Pull request description does not contain a valid Azure Boards work item link. Waiting 10 seconds before rechecking..."
     Start-Sleep -Seconds 10
 
-    $Description = Get-PullRequestDescriptionFromGitHub @PrContext
+    $Description = Get-PullRequestDescriptionFromGitHub -Owner $PrContext.Owner -Repo $PrContext.Repo -PullRequestNumber $PrContext.Number -Token $RepoToken
     Write-Host "Pull request description fetched successfully: $Description"
 
     Write-Host "Validating pull request description for Azure Boards work item link..."
