@@ -265,6 +265,7 @@ Write-Host "Pull request description fetched successfully: $Description"
 Write-Host "Validating pull request description for Azure Boards work item link..."
 $HasWorkItemText = $Description -match 'AB#\d+'
 if (-not $HasWorkItemText) {
+    Write-Host "::error title=No valid work item link::Pull request description does not contain Azure Boards work item text (AB#<digits>)."
     throw "Pull request description does not contain Azure Boards work item text (AB#<digits>)."
 }
 
