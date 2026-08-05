@@ -6,7 +6,6 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-
 function Get-EventPayload {
     $eventPath = $env:GITHUB_EVENT_PATH
 
@@ -117,32 +116,33 @@ function Test-WorkItemLink {
 function Test-PullRequestDescription {
     [OutputType([Boolean])]
     param(
-        [hashtable]$PrContext
+        [hashtable]$PrContext,
+        [string]$RepoToken
     )
 
-    $Description = Get-PullRequestDescriptionFromGitHub @PrContext -Token $RepoToken
+    $description = Get-PullRequestDescriptionFromGitHub @PrContext -Token $RepoToken
     Write-Host "Pull request description fetched successfully"
     Write-Host "::group::Description:"
-    Write-Host "$Description"
+    Write-Host $description
     Write-Host "::endgroup::"
 
     Write-Host "Validating pull request description for Azure Boards work item link..."
-    $HasWorkItemText = Test-WorkItemText -Description $Description
-    if (-not $HasWorkItemText) {
+    $hasWorkItemText = Test-WorkItemText -Description $description
+    if (-not $hasWorkItemText) {
         Write-ActionError -Message 'Pull request description does not contain Azure Boards work item text (AB#<digits>).'
     }
 
-    $HasWorkItemLink = Test-WorkItemLink -Description $Description
-    return $HasWorkItemLink
+    $hasWorkItemLink = Test-WorkItemLink -Description $description
+    return $hasWorkItemLink
 }
 
 if ($MyInvocation.InvocationName -ne '.') {
     Write-Host "Fetching pull request description from GitHub..."
-    $PrContext = Get-PullRequestContext
-    Write-Host "Pull request #$($PrContext.PullRequestNumber) in $($PrContext.Owner)/$($PrContext.Repo)."
+    $prContext = Get-PullRequestContext
+    Write-Host "Pull request #$($prContext.PullRequestNumber) in $($prContext.Owner)/$($prContext.Repo)."
 
-    $HasWorkItemLink = Test-PullRequestDescription -PrContext $PrContext
-    if ($HasWorkItemLink) {
+    $hasWorkItemLink = Test-PullRequestDescription -PrContext $prContext -RepoToken $RepoToken
+    if ($hasWorkItemLink) {
         Write-Host "Pull request description contains a valid Azure Boards work item link."
         return
     }
@@ -151,8 +151,8 @@ if ($MyInvocation.InvocationName -ne '.') {
     Start-Sleep -Seconds 10
     Write-Host "Rechecking pull request description for Azure Boards work item link..."
 
-    $HasWorkItemLink = Test-PullRequestDescription -PrContext $PrContext
-    if ($HasWorkItemLink) {
+    $hasWorkItemLink = Test-PullRequestDescription -PrContext $prContext -RepoToken $RepoToken
+    if ($hasWorkItemLink) {
         Write-Host "Pull request description contains a valid Azure Boards work item link after retry."
         return
     }

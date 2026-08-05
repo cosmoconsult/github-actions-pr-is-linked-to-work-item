@@ -7,7 +7,7 @@ BeforeAll {
 
 Describe 'Azure Boards link validation' {
     BeforeAll {
-        $RepoToken = 'test-token'
+        $repoToken = 'test-token'
     }
 
     It 'accepts Azure Boards work item text' {
@@ -44,12 +44,12 @@ Describe 'Azure Boards link validation' {
         }
 
         $context = @{
-            Owner = 'org'
-            Repo = 'repo'
+            Owner             = 'org'
+            Repo              = 'repo'
             PullRequestNumber = 1
         }
 
-        Test-PullRequestDescription -PrContext $context | Should -BeTrue
+        Test-PullRequestDescription -PrContext $context -RepoToken $repoToken | Should -BeTrue
         Should -Invoke Get-PullRequestDescriptionFromGitHub -Times 1
     }
 
@@ -64,7 +64,7 @@ Describe 'Azure Boards link validation' {
             PullRequestNumber = 1
         }
 
-        Test-PullRequestDescription -PrContext $context | Should -BeTrue
+        Test-PullRequestDescription -PrContext $context -RepoToken $repoToken | Should -BeTrue
         Should -Invoke Get-PullRequestDescriptionFromGitHub -Times 1
     }
 
@@ -79,7 +79,7 @@ Describe 'Azure Boards link validation' {
             PullRequestNumber = 1
         }
 
-        Test-PullRequestDescription -PrContext $context | Should -BeFalse
+        Test-PullRequestDescription -PrContext $context -RepoToken $repoToken | Should -BeFalse
         Should -Invoke Get-PullRequestDescriptionFromGitHub -Times 1
     }
 
@@ -89,7 +89,7 @@ Describe 'Azure Boards link validation' {
         }
 
         {
-            Test-PullRequestDescription -PrContext (@{ Owner = 'org'; Repo = 'repo'; PullRequestNumber = 1 })
+            Test-PullRequestDescription -PrContext (@{ Owner = 'org'; Repo = 'repo'; PullRequestNumber = 1 }) -RepoToken $repoToken
         } | Should -Throw '*AB#<digits>*'
     }
 }
