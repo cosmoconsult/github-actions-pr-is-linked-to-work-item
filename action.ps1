@@ -7,19 +7,6 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 
-function Write-ActionError {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Title,
-
-        [Parameter(Mandatory = $true)]
-        [string]$Message
-    )
-
-    Write-Host "::error title=$Title::$Message"
-    throw $Message
-}
-
 function Get-EventPayload {
     $eventPath = $env:GITHUB_EVENT_PATH
 
@@ -150,18 +137,18 @@ function Test-PullRequestDescription {
     return $HasWorkItemLink
 }
 
-# Get Description
-Write-Host "Fetching pull request description from GitHub..."
-$PrContext = Get-PullRequestContext
-Write-Host "Pull request #$($PrContext.Number) in $($PrContext.Owner)/$($PrContext.Repo)."
+if ($MyInvocation.InvocationName -ne '.') {
+    Write-Host "Fetching pull request description from GitHub..."
+    $PrContext = Get-PullRequestContext
+    Write-Host "Pull request #$($PrContext.Number) in $($PrContext.Owner)/$($PrContext.Repo)."
 
-$HasWorkItemLink = Test-PullRequestDescription -PrContext $PrContext
+    $HasWorkItemLink = Test-PullRequestDescription -PrContext $PrContext
 
-if ($HasWorkItemLink) {
-    Write-Host "Pull request description contains a valid Azure Boards work item link."
-    return
-}
-else {
+    if ($HasWorkItemLink) {
+        Write-Host "Pull request description contains a valid Azure Boards work item link."
+        return
+    }
+
     Write-Host "Pull request description does not contain a valid Azure Boards work item link. Waiting 10 seconds before rechecking..."
     Start-Sleep -Seconds 10
     Write-Host "Rechecking pull request description for Azure Boards work item link..."
@@ -172,7 +159,6 @@ else {
         Write-Host "Pull request description contains a valid Azure Boards work item link after retry."
         return
     }
-    else {
-        Write-ActionError -Message 'Pull request description does not contain a valid Azure Boards work item link.'
-    }
+
+    Write-ActionError -Message 'Pull request description does not contain a valid Azure Boards work item link.'
 }
