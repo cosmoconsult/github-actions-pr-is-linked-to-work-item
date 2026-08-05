@@ -53,6 +53,21 @@ Describe 'Azure Boards link validation' {
         Should -Invoke Get-PullRequestDescriptionFromGitHub -Times 1
     }
 
+    It 'returns true for a valid description with query parameters in Test-PullRequestDescription' {
+        Mock Get-PullRequestDescriptionFromGitHub {
+            'See [AB#123](https://dev.azure.com/org/project/_workitems/edit/123?fullScreen=true&view=details)'
+        }
+
+        $context = @{
+            Owner             = 'org'
+            Repo              = 'repo'
+            PullRequestNumber = 1
+        }
+
+        Test-PullRequestDescription -PrContext $context | Should -BeTrue
+        Should -Invoke Get-PullRequestDescriptionFromGitHub -Times 1
+    }
+
     It 'returns false for AB text with invalid link in Test-PullRequestDescription' {
         Mock Get-PullRequestDescriptionFromGitHub {
             'See [AB#123](https://example.com/123)'
