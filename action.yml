@@ -12,8 +12,8 @@ inputs:
 runs:
   using: 'composite'
   steps:
-  - id: CheckWorkItemLink
-    name: Check for Azure Boards work item link in PR description
-    shell: pwsh
-    run: |
-      & "${{ github.action_path }}/action.ps1" -RepoToken "${{ inputs.repo-token }}"
+    - id: CheckWorkItemLink
+      name: Check for Azure Boards work item link in PR description
+      shell: pwsh
+      run: |
+        & "${{ github.action_path }}/action.ps1" -RepoToken "${{ inputs.repo-token }}"
