@@ -101,14 +101,53 @@ function Get-PullRequestDescriptionFromGitHub {
 function Write-ActionError {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$Title,
+        [string]$Message,
 
-        [Parameter(Mandatory = $true)]
-        [string]$Message
+        [Parameter(Mandatory = $false)]
+        [string]$Title = 'No valid work item link'
     )
-
     Write-Host "::error title=$Title::$Message"
     throw $Message
+}
+
+function Test-WorkItemText {
+    [OutputType([Boolean])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Description
+    )
+    return $Description -match 'AB#\d+'
+}
+
+function Test-WorkItemLink {
+    [OutputType([Boolean])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Description
+    )
+    return $Description -match '\[AB#\d+\]\(.*\/_workitems\/edit\/\d+\/?\)'
+}
+
+function Test-PullRequestDescription {
+    [OutputType([Boolean])]
+    param(
+        [Object]$PrContext
+    )
+
+    $Description = Get-PullRequestDescriptionFromGitHub -Owner $PrContext.Owner -Repo $PrContext.Repo -PullRequestNumber $PrContext.Number -Token $RepoToken
+    Write-Host "Pull request description fetched successfully"
+    Write-Host "::group::Description:"
+    Write-Host "$Description"
+    Write-Host "::endgroup::"
+
+    Write-Host "Validating pull request description for Azure Boards work item link..."
+    $HasWorkItemText = Test-WorkItemText -Description $Description
+    if (-not $HasWorkItemText) {
+        Write-ActionError -Message 'Pull request description does not contain Azure Boards work item text (AB#<digits>).'
+    }
+
+    $HasWorkItemLink = Test-WorkItemLink -Description $Description
+    return $HasWorkItemLink
 }
 
 # Get Description
@@ -116,39 +155,24 @@ Write-Host "Fetching pull request description from GitHub..."
 $PrContext = Get-PullRequestContext
 Write-Host "Pull request #$($PrContext.Number) in $($PrContext.Owner)/$($PrContext.Repo)."
 
-$Description = Get-PullRequestDescriptionFromGitHub -Owner $PrContext.Owner -Repo $PrContext.Repo -PullRequestNumber $PrContext.Number -Token $RepoToken
-Write-Host "Pull request description fetched successfully: $Description"
+$HasWorkItemLink = Test-PullRequestDescription -PrContext $PrContext
 
-Write-Host "Validating pull request description for Azure Boards work item link..."
-$HasWorkItemText = $Description -match 'AB#\d+'
-if (-not $HasWorkItemText) {
-    Write-ActionError -Title 'No valid work item link' -Message 'Pull request description does not contain Azure Boards work item text (AB#<digits>).'
-}
-
-$HasWorkItemLink = $Description -match '\[AB#\d+\]\(.*\/_workitems\/edit\/\d+\/?\)'
 if ($HasWorkItemLink) {
     Write-Host "Pull request description contains a valid Azure Boards work item link."
     return
 }
-if (!$HasWorkItemLink ) {
+else {
     Write-Host "Pull request description does not contain a valid Azure Boards work item link. Waiting 10 seconds before rechecking..."
     Start-Sleep -Seconds 10
+    Write-Host "Rechecking pull request description for Azure Boards work item link..."
 
-    $Description = Get-PullRequestDescriptionFromGitHub -Owner $PrContext.Owner -Repo $PrContext.Repo -PullRequestNumber $PrContext.Number -Token $RepoToken
-    Write-Host "Pull request description fetched successfully: $Description"
+    $HasWorkItemLink = Test-PullRequestDescription -PrContext $PrContext
 
-    Write-Host "Validating pull request description for Azure Boards work item link..."
-    $HasWorkItemText = $Description -match 'AB#\d+'
-    if (-not $HasWorkItemText) {
-        Write-ActionError -Title 'No valid work item link' -Message 'Pull request description does not contain Azure Boards work item text (AB#<digits>).'
-    }
-    $HasWorkItemLink = $Description -match '\[AB#\d+\]\(.*\/_workitems\/edit\/\d+\/?\)'
     if ($HasWorkItemLink) {
         Write-Host "Pull request description contains a valid Azure Boards work item link after retry."
         return
     }
     else {
-        Write-ActionError -Title 'No valid work item link after retry' -Message 'Pull request description still does not contain a valid Azure Boards work item link after retry.'
-
+        Write-ActionError -Message 'Pull request description does not contain a valid Azure Boards work item link.'
     }
 }

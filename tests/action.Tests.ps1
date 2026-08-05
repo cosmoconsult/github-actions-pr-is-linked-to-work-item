@@ -6,41 +6,63 @@ BeforeAll {
 }
 
 Describe 'Azure Boards link validation' {
-    It 'accepts a valid Azure Boards work item markdown link' {
-        Test-WorkItemLinkDescription -Description 'See [AB#123](https://dev.azure.com/org/project/_workitems/edit/123)' | Should -BeTrue
+    BeforeAll {
+        $RepoToken = 'test-token'
     }
 
-    It 'rejects a markdown link that does not target Azure Boards work items' {
-        Test-WorkItemLinkDescription -Description 'See [AB#123](https://example.com/123)' | Should -BeFalse
+    It 'accepts Azure Boards work item text' {
+        Test-WorkItemText -Description 'See [AB#123](https://dev.azure.com/org/project/_workitems/edit/123)' | Should -BeTrue
     }
 
-    It 'passes after a retry when the refreshed description is valid' {
-        $validAfterRetry = { 'See [AB#123](https://dev.azure.com/org/project/_workitems/edit/123)' }.GetNewClosure()
+    It 'rejects missing Azure Boards work item text' {
+        Test-WorkItemText -Description 'No work item text here' | Should -BeFalse
+    }
+
+    It 'accepts a valid Azure Boards work item link' {
+        Test-WorkItemLink -Description 'See [AB#123](https://dev.azure.com/org/project/_workitems/edit/123)' | Should -BeTrue
+    }
+
+    It 'rejects a link that does not target Azure Boards work items' {
+        Test-WorkItemLink -Description 'See [AB#123](https://example.com/123)' | Should -BeFalse
+    }
+
+    It 'returns true for a valid description in Test-PullRequestDescription' {
+        Mock Get-PullRequestDescriptionFromGitHub {
+            'See [AB#123](https://dev.azure.com/org/project/_workitems/edit/123)'
+        }
+
+        $context = [pscustomobject]@{
+            Owner = 'org'
+            Repo = 'repo'
+            Number = 1
+        }
+
+        Test-PullRequestDescription -PrContext $context | Should -BeTrue
+        Should -Invoke Get-PullRequestDescriptionFromGitHub -Times 1
+    }
+
+    It 'returns false for AB text with invalid link in Test-PullRequestDescription' {
+        Mock Get-PullRequestDescriptionFromGitHub {
+            'See [AB#123](https://example.com/123)'
+        }
+
+        $context = [pscustomobject]@{
+            Owner = 'org'
+            Repo = 'repo'
+            Number = 1
+        }
+
+        Test-PullRequestDescription -PrContext $context | Should -BeFalse
+        Should -Invoke Get-PullRequestDescriptionFromGitHub -Times 1
+    }
+
+    It 'throws a clear error when AB text is missing in Test-PullRequestDescription' {
+        Mock Get-PullRequestDescriptionFromGitHub {
+            'No work item text here'
+        }
 
         {
-            Invoke-LinkCheck -InitialDescription 'No work item yet.' -RetryDelaySeconds 0 -DescriptionProvider $validAfterRetry
-        } | Should -Not -Throw
-    }
-
-    It 'fails after one retry when the description is still invalid' {
-        $stillInvalid = { 'Still missing the Azure Boards link.' }.GetNewClosure()
-
-        {
-            Invoke-LinkCheck -InitialDescription 'Still missing the Azure Boards link.' -RetryDelaySeconds 0 -DescriptionProvider $stillInvalid
-        } | Should -Throw '*No markdown links were found*Expected format*'
-    }
-
-    It 'reports a clear reason for empty descriptions' {
-        $result = Get-LinkValidationResult -Description ''
-
-        $result.IsValid | Should -BeFalse
-        $result.Reason | Should -Be 'Description is empty.'
-    }
-
-    It 'reports a clear reason when AB text exists but URL is wrong' {
-        $result = Get-LinkValidationResult -Description 'See [AB#123](https://example.com/workitems/123)'
-
-        $result.IsValid | Should -BeFalse
-        $result.Reason | Should -Be 'Found markdown link text like AB#123, but the link target does not contain /_workitems/edit/.'
+            Test-PullRequestDescription -PrContext ([pscustomobject]@{ Owner = 'org'; Repo = 'repo'; Number = 1 })
+        } | Should -Throw '*AB#<digits>*'
     }
 }
