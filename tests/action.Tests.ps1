@@ -31,10 +31,10 @@ Describe 'Azure Boards link validation' {
             'See [AB#123](https://dev.azure.com/org/project/_workitems/edit/123)'
         }
 
-        $context = [pscustomobject]@{
+        $context = @{
             Owner = 'org'
             Repo = 'repo'
-            Number = 1
+            PullRequestNumber = 1
         }
 
         Test-PullRequestDescription -PrContext $context | Should -BeTrue
@@ -46,10 +46,10 @@ Describe 'Azure Boards link validation' {
             'See [AB#123](https://example.com/123)'
         }
 
-        $context = [pscustomobject]@{
-            Owner = 'org'
-            Repo = 'repo'
-            Number = 1
+        $context = @{
+            Owner             = 'org'
+            Repo              = 'repo'
+            PullRequestNumber = 1
         }
 
         Test-PullRequestDescription -PrContext $context | Should -BeFalse
@@ -62,7 +62,7 @@ Describe 'Azure Boards link validation' {
         }
 
         {
-            Test-PullRequestDescription -PrContext ([pscustomobject]@{ Owner = 'org'; Repo = 'repo'; Number = 1 })
+            Test-PullRequestDescription -PrContext (@{ Owner = 'org'; Repo = 'repo'; PullRequestNumber = 1 })
         } | Should -Throw '*AB#<digits>*'
     }
 }
