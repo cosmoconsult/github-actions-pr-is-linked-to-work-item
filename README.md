@@ -2,7 +2,7 @@
 
 Use this action to ensure the current pull request description includes a markdown link whose visible text is an Azure Boards work item such as `AB#123` and whose target URL contains `/_workitems/edit/`.
 
-The action checks the current description first. If it does not pass, it waits 10 seconds, fetches the pull request again, and checks one more time. It stops after that second check.
+The action checks the current description first. If it contains an `AB#<ID>` reference but the link format is invalid, it waits 10 seconds, fetches the pull request again, and checks one more time. If no `AB#<ID>` reference is present, the action fails immediately without retrying.
 
 ## Usage
 
@@ -43,7 +43,3 @@ The visible text must match `AB#` followed by digits. The URL must contain `/_wo
 ## Input
 
 The action keeps the existing `repo-token` input. It defaults to `github.token`, so most workflows do not need to pass anything explicitly.
-
-## Notes
-
-This repository no longer uses the old Node/TypeScript build pipeline. The checked-in action is the PowerShell implementation in `action.ps1`.
