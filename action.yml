@@ -1,14 +1,19 @@
 name: 'Azure Boards, check for AB#'
-description: 'Check if the pull request is linked to a work item in Azure DevOps'
-author: 'danhellem'
+description: 'Check if the pull request description contains a markdown link to an Azure Boards work item'
+author: COSMO CONSULT
 branding:
   icon: "code"
   color: "purple"
 inputs:
   repo-token:
-    description: 'Github token of the repository (automatically created by GitHub)'
+    description: 'GitHub token for reading the current pull request'
     default: ${{ github.token }}
     required: false
 runs:
-  using: 'node16'
-  main: 'dist/index.js'
+  using: 'composite'
+  steps:
+    - id: CheckWorkItemLink
+      name: Check for Azure Boards work item link in PR description
+      shell: pwsh
+      run: |
+        & "${{ github.action_path }}/action.ps1" -RepoToken "${{ inputs.repo-token }}"

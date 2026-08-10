@@ -1,0 +1,23 @@
+name: "Continuous Integration (CI)"
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Run Pester tests
+        shell: pwsh
+        run: |
+          if (-not (Get-Module -ListAvailable -Name Pester)) {
+            Install-Module -Name Pester -Force -SkipPublisherCheck -Scope CurrentUser
+          }
+
+          Import-Module Pester -MinimumVersion 5.0.0
+          Invoke-Pester -Path "${{ github.workspace }}/tests" -CI
