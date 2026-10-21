@@ -4,6 +4,8 @@ Use this action to ensure the current pull request description includes a markdo
 
 The action checks the current description first. If it contains an `AB#<ID>` reference but the link format is invalid, it waits 10 seconds, fetches the pull request again, and checks one more time. If no `AB#<ID>` reference is present, the action fails immediately without retrying.
 
+Pull requests created by Dependabot (`dependabot[bot]`) are skipped and always succeed.
+
 ## Usage
 
 Add the action to a pull request workflow:
