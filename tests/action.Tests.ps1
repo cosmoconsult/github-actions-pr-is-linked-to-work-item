@@ -38,6 +38,12 @@ Describe 'Azure Boards link validation' {
         Test-WorkItemLink -Description 'See [AB#123](https://dev.azure.com/org/project/_workitems/edit/123/extra)' | Should -BeFalse
     }
 
+    It 'identifies Dependabot as author' {
+        Test-DependabotAuthor -Author 'dependabot[bot]' | Should -BeTrue
+        Test-DependabotAuthor -Author 'someone' | Should -BeFalse
+        Test-DependabotAuthor -Author '' | Should -BeFalse
+    }
+
     It 'returns true for a valid description in Test-PullRequestDescription' {
         Mock Get-PullRequestDescriptionFromGitHub {
             'See [AB#123](https://dev.azure.com/org/project/_workitems/edit/123)'

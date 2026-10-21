@@ -35,7 +35,16 @@ function Get-PullRequestContext {
         Owner             = [string]$payload.repository.owner.login
         Repo              = [string]$payload.repository.name
         PullRequestNumber = [int]$payload.pull_request.number
+        Author            = if ($null -ne $payload.pull_request.user) { [string]$payload.pull_request.user.login } else { '' }
     }
+}
+
+function Test-DependabotAuthor {
+    [OutputType([Boolean])]
+    param(
+        [string]$Author
+    )
+    return $Author -eq 'dependabot[bot]'
 }
 
 function Get-PullRequestDescriptionFromGitHub {
@@ -140,6 +149,13 @@ if ($MyInvocation.InvocationName -ne '.') {
     Write-Host "Fetching pull request description from GitHub..."
     $prContext = Get-PullRequestContext
     Write-Host "Pull request #$($prContext.PullRequestNumber) in $($prContext.Owner)/$($prContext.Repo)."
+
+    if (Test-DependabotAuthor -Author $prContext.Author) {
+        Write-Host "Pull request was created by Dependabot. Skipping work item link check."
+        return
+    }
+
+    $prContext.Remove('Author')
 
     $hasWorkItemLink = Test-PullRequestDescription -PrContext $prContext -RepoToken $RepoToken
     if ($hasWorkItemLink) {
